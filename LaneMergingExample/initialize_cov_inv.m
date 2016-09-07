@@ -2,7 +2,7 @@ function state_cov_inv = initialize_cov_inv(param_init, deltaT, num_cstate, num_
 
 x = zeros(num_cstate, horizon, num_q);
 
-starting_idx = num_cstate * horizon * num_q;
+starting_idx = 0;
 for i = 1:num_q
     x(:, :, i) = reshape(param_init(starting_idx + 1 : starting_idx + num_cstate * horizon), ...
                    [num_cstate horizon]);

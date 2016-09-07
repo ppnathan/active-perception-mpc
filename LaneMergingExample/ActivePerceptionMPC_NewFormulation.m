@@ -14,7 +14,7 @@ control = zeros(SimTime+1, 1);
 
 MatlabSimfile_Discrete = fopen('OutFiles/MatlabSimfile_Discrete.txt', 'w');
 
-x_sim(:, 1) = [-270; 30; -300; 32];
+x_sim(:, 1) = [-270; 30; -300; 30];
 belief_sim(:, 1) = [1/3; 1/3; 1/3];
 q_sim = 3;
 
@@ -23,9 +23,8 @@ horizon = 30;
 deltaT = 0.2;
 mReactionDist = 25;
 
-lambda = 50;
+lambda = 20;
 epsilon = 1e-2;
-
 
 for k = 1:SimTime
     k
@@ -49,19 +48,18 @@ for k = 1:SimTime
         b = [];
         Aeq = [];
         beq = [];
-        lb = [-Inf * ones(num_cstate * horizon * num_q * 2, 1); -ones(num_q * horizon + horizon, 1)];
-        ub = [Inf * ones(num_cstate * horizon * num_q * 2, 1); ones(num_q * horizon + horizon, 1)];
+        lb = [-Inf * ones(num_cstate * horizon * num_q, 1); -ones(num_q * horizon, 1)];
+        ub = [Inf * ones(num_cstate * horizon * num_q, 1); ones(num_q * horizon, 1)];
         nonlcon = @(vars)constrantsFn_New(vars, x_sim(:, k), belief_sim(:, k), epsilon, ...
                                           deltaT, num_cstate, num_q, horizon, horizon);
         
         options = optimoptions('fmincon', 'Display','iter', ...
-                               'Algorithm','sqp', 'GradObj','on');%, 'MaxFunEvals', 20000);
+                               'Algorithm','interior-point', 'GradObj','on', 'MaxFunEvals', 50000);
 
         disp('Solving optimization problem...')
         [params, min_value] = fmincon(fObj, params, A, b, Aeq, beq, lb, ub, nonlcon, options);
         min_value
-        [x_params, x_tilde_params, u_params, u_tilde_params] = ...
-                                                    parseParams(params, num_q, num_cstate, horizon);
+        [x_params, u_params] = parseParams(params, num_q, num_cstate, horizon);
 
 %         sigma = u_params(1)
     end
