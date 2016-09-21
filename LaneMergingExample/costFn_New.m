@@ -48,8 +48,8 @@ end
 
 eta = 1e6;
 D_eff = 7;
-points = [-7  -3.5  0;
-          -7  -3.5  0];
+points = [-15.27,  -7.64  0;
+          0,       -7.64  -15.27];
 num_points = size(points, 2);
 dist_to_points = zeros(num_points, horizon, num_q);
 cost_constraints_tmp = zeros(1, horizon, num_q);

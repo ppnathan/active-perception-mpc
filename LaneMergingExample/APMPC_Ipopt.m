@@ -31,6 +31,7 @@ for k = 1:SimTime
     horizon = max(5, min(horizon, floor(abs(min(x_sim(1, k), x_sim(3, k)))/30/deltaT)))
     
     params = initialize_params_New(q_sim, x_sim(:, k), mReactionDist, deltaT, horizon);
+  
     for iter = 1:1
 %         iter
         state_cov_inv = initialize_cov_inv(params, deltaT, num_cstate, num_q, horizon);
@@ -40,26 +41,40 @@ for k = 1:SimTime
 %             fObj = @(vars)emptyFn(vars, num_cstate, num_q, horizon);
 %         else
 %             disp('Do the original optimization problem.');
-            fObj = @(vars)costFn_New(vars, state_cov_inv, belief_sim(:, k), lambda, epsilon, ...
+            funcs.objective = @(vars)costFn_Ipopt(vars, state_cov_inv, belief_sim(:, k), lambda, epsilon, ...
+                                 num_cstate, num_q, horizon);
+            funcs.gradient = @(vars)costGradient_Ipopt(vars, state_cov_inv, belief_sim(:, k), lambda, epsilon, ...
                                  num_cstate, num_q, horizon);
 %         end
 
-        A = [];
-        b = [];
-        Aeq = [];
-        beq = [];
-        lb = [-Inf * ones(num_cstate * horizon * num_q, 1); -ones(num_q * horizon, 1)];
-        ub = [Inf * ones(num_cstate * horizon * num_q, 1); ones(num_q * horizon, 1)];
-        nonlcon = @(vars)constrantsFn_New(vars, x_sim(:, k), belief_sim(:, k), epsilon, ...
-                                          deltaT, num_cstate, num_q, horizon, horizon);
+        options.lb = [-Inf * ones(num_cstate * horizon * num_q, 1); -ones(num_q * horizon, 1)];
+        options.lb = [Inf * ones(num_cstate * horizon * num_q, 1); ones(num_q * horizon, 1)];
         
-        options = optimoptions('fmincon', 'Display','iter', ...
-                               'Algorithm','interior-point', 'GradObj','on', 'MaxFunEvals', 50000);
+        funcs.constraints = @(vars)constrantsFn_Ipopt(vars, x_sim(:, k), belief_sim(:, k), epsilon, ...
+                                          deltaT, num_cstate, num_q, horizon, horizon);
+        funcs.jacobian = @(vars)constrantsJacobian_Ipopt(vars, x_sim(:, k), ...
+                                             epsilon, deltaT, num_cstate, num_q, horizon, horizon);
+        funcs.jacobianstructure = @(vars)constrantsJacobian_Ipopt(vars, x_sim(:, k), ...
+                                             epsilon, deltaT, num_cstate, num_q, horizon, horizon);
+        num_ceq = num_q-1 + horizon * num_q * num_cstate;
+        options.cl = zeros(num_ceq, 1);   % Lower bounds on the constraint functions.
+        options.cu = zeros(num_ceq, 1);   % Upper bounds on the constraint functions.
+        
+        options.ipopt.hessian_approximation = 'limited-memory';
+        options.ipopt.mu_strategy = 'adaptive';
+%         options.ipopt.print_level = 0;
+%         options.ipopt.tol         = 1e-7;
+%         options.ipopt.max_iter    = 100;
+        
+%         options = optimoptions('fmincon', 'Display','iter', ...
+%                                'Algorithm','interior-point', 'GradObj','on', 'MaxFunEvals', 50000);
 
         disp('Solving optimization problem...')
-        [params, min_value] = fmincon(fObj, params, A, b, Aeq, beq, lb, ub, nonlcon, options);
-        min_value
-        [x_params, u_params] = parseParams(params, num_q, num_cstate, horizon);
+        % Run IPOPT.
+        [params_out, info] = ipopt(params,funcs,options);
+%         [params, min_value] = fmincon(fObj, params, A, b, Aeq, beq, lb, ub, nonlcon, options);
+%         min_value
+        [x_params, u_params] = parseParams(params_out, num_q, num_cstate, horizon);
 
 %         sigma = u_params(1)
     end
@@ -80,7 +95,6 @@ for k = 1:SimTime
         q_sim, x_sim(1, k), x_sim(2, k), x_sim(3, k), x_sim(4, k), ...
         belief_sim(1, k), belief_sim(2, k), belief_sim(3, k), control(k));
     
-
     if (IsSimEnded(q_sim, x_sim(:, k)))
         break;
     end
