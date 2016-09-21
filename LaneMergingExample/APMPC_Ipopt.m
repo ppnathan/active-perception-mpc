@@ -6,7 +6,7 @@ num_q = 3;
 num_cstate = 4;
 gamma = 0.999;
 
-SimTime = 2;
+SimTime = 200;
 
 x_sim = zeros(num_cstate, SimTime+1);
 belief_sim = zeros(num_q, SimTime+1);
@@ -52,19 +52,20 @@ for k = 1:SimTime
         
         funcs.constraints = @(vars)constrantsFn_Ipopt(vars, x_sim(:, k), epsilon, ...
                                           deltaT, num_cstate, num_q, horizon, horizon);
-        funcs.jacobian = @(vars)constrantsJacobian_Ipopt(vars, x_sim(:, k), ...
-                                             epsilon, deltaT, num_cstate, num_q, horizon, horizon);
-        funcs.jacobianstructure = @(vars)constrantsJacobian_Ipopt(vars, x_sim(:, k), ...
-                                             epsilon, deltaT, num_cstate, num_q, horizon, horizon);
+        funcs.jacobian = @(x) constrantsJacobian_Ipopt(deltaT, num_cstate, num_q, horizon);
+        funcs.jacobianstructure = @() constrantsJacobian_Ipopt(deltaT, num_cstate, num_q, horizon);
+%         funcs.jacobianstructure = @(vars) constrantsJacobian_Ipopt(vars, deltaT, num_cstate, num_q, horizon);
+%         funcs.jacobian = @dummyJaco;
+%         funcs.jacobianstructure = @dummyJaco;
         num_ceq = num_q-1 + horizon * num_q * num_cstate;
         options.cl = zeros(num_ceq, 1);   % Lower bounds on the constraint functions.
         options.cu = zeros(num_ceq, 1);   % Upper bounds on the constraint functions.
         
         options.ipopt.hessian_approximation = 'limited-memory';
         options.ipopt.mu_strategy = 'adaptive';
-        options.ipopt.print_level = 12`;
-%         options.ipopt.tol         = 1e-7;
-%         options.ipopt.max_iter    = 100;
+        options.ipopt.print_level = 5;
+        options.ipopt.tol         = 1e-4;
+        options.ipopt.max_iter    = 100;
         
 %         options = optimoptions('fmincon', 'Display','iter', ...
 %                                'Algorithm','interior-point', 'GradObj','on', 'MaxFunEvals', 50000);

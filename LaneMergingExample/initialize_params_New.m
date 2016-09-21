@@ -53,7 +53,7 @@ for t = 1:horizon
     end
 end
 
-init_params = [x_init(:); u_init(:);];
+init_params = [x_init(:)', u_init(:)'];
 
 
 end

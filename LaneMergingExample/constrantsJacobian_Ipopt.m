@@ -1,27 +1,26 @@
-function ceq_Jaco = constrantsJacobian_Ipopt(vars, x0, epsilon, deltaT, num_cstate, num_q, ...
-                                     horizon, constraint_horizon)
+function ceq_Jaco = constrantsJacobian_Ipopt(deltaT, num_cstate, num_q, horizon)
 
 
-x = zeros(num_cstate, horizon, num_q);
-starting_idx = 0;
-for i = 1:num_q
-    x(:, :, i) = reshape(vars(starting_idx + 1 : starting_idx + num_cstate * horizon), ...
-                   [num_cstate horizon]);
-    starting_idx = starting_idx + num_cstate * horizon;
-end
-
-% x_tilde = zeros(num_cstate, horizon, num_q);
+% x = zeros(num_cstate, horizon, num_q);
+% starting_idx = 0;
 % for i = 1:num_q
-%     x_tilde(:, :, i) = reshape(vars(starting_idx + 1 : starting_idx + num_cstate * horizon), ...
-%                          [num_cstate horizon]);
+%     x(:, :, i) = reshape(vars(starting_idx + 1 : starting_idx + num_cstate * horizon), ...
+%                    [num_cstate horizon]);
 %     starting_idx = starting_idx + num_cstate * horizon;
 % end
-
-u = zeros(horizon, num_q);
-for i = 1:num_q
-    u(:, i) = vars(starting_idx + 1 : starting_idx + horizon);
-    starting_idx = starting_idx + horizon;
-end
+% 
+% % x_tilde = zeros(num_cstate, horizon, num_q);
+% % for i = 1:num_q
+% %     x_tilde(:, :, i) = reshape(vars(starting_idx + 1 : starting_idx + num_cstate * horizon), ...
+% %                          [num_cstate horizon]);
+% %     starting_idx = starting_idx + num_cstate * horizon;
+% % end
+% 
+% u = zeros(horizon, num_q);
+% for i = 1:num_q
+%     u(:, i) = vars(starting_idx + 1 : starting_idx + horizon);
+%     starting_idx = starting_idx + horizon;
+% end
 
 % u_tilde = vars(starting_idx + 1 : starting_idx + horizon);
 
@@ -38,7 +37,7 @@ B = [0; 0;      0; deltaT];
 
 % mReactionDist = 25;
 
-% num_ceq = num_q-1 + horizon * num_q * num_cstate;
+%  num_ceq = num_q-1 + horizon * num_q * num_cstate;
 count_ceq = 1;
 % ceq_Jaco = zeros(num_ceq, num_cstate * horizon * num_q + num_q * horizon);
 
@@ -64,6 +63,7 @@ ceq_Jaco = [ sparse(u_eq_con_grad);
              x_gradient_block, x_grad_zeros_blk, x_grad_zeros_blk, u_gradient_block, u_grad_zeros_blk, u_grad_zeros_blk;
              x_grad_zeros_blk, x_gradient_block, x_grad_zeros_blk, u_grad_zeros_blk, u_gradient_block, u_grad_zeros_blk;
              x_grad_zeros_blk, x_grad_zeros_blk, x_gradient_block, u_grad_zeros_blk, u_grad_zeros_blk, u_gradient_block];
+% ceq_Jaco = sparse(zeros(num_ceq, num_cstate * horizon * num_q + num_q*horizon));
 
 % for i = 1 : num_q
 %     for t = 1 : horizon
