@@ -5,3 +5,6 @@
 
 # Temp files
 *.m~
+
+# Mac files
+*.DS_Store

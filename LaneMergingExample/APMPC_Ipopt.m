@@ -48,7 +48,7 @@ for k = 1:SimTime
 %         end
 
         options.lb = [-Inf * ones(num_cstate * horizon * num_q, 1); -ones(num_q * horizon, 1)];
-        options.lb = [Inf * ones(num_cstate * horizon * num_q, 1); ones(num_q * horizon, 1)];
+        options.ub = [Inf * ones(num_cstate * horizon * num_q, 1); ones(num_q * horizon, 1)];
         
         funcs.constraints = @(vars)constrantsFn_Ipopt(vars, x_sim(:, k), epsilon, ...
                                           deltaT, num_cstate, num_q, horizon, horizon);
