@@ -6,7 +6,7 @@ num_q = 3;
 num_cstate = 4;
 gamma = 0.999;
 
-SimTime = 200;
+SimTime = 2;
 
 x_sim = zeros(num_cstate, SimTime+1);
 belief_sim = zeros(num_q, SimTime+1);
@@ -50,7 +50,7 @@ for k = 1:SimTime
         options.lb = [-Inf * ones(num_cstate * horizon * num_q, 1); -ones(num_q * horizon, 1)];
         options.lb = [Inf * ones(num_cstate * horizon * num_q, 1); ones(num_q * horizon, 1)];
         
-        funcs.constraints = @(vars)constrantsFn_Ipopt(vars, x_sim(:, k), belief_sim(:, k), epsilon, ...
+        funcs.constraints = @(vars)constrantsFn_Ipopt(vars, x_sim(:, k), epsilon, ...
                                           deltaT, num_cstate, num_q, horizon, horizon);
         funcs.jacobian = @(vars)constrantsJacobian_Ipopt(vars, x_sim(:, k), ...
                                              epsilon, deltaT, num_cstate, num_q, horizon, horizon);
@@ -62,7 +62,7 @@ for k = 1:SimTime
         
         options.ipopt.hessian_approximation = 'limited-memory';
         options.ipopt.mu_strategy = 'adaptive';
-%         options.ipopt.print_level = 0;
+        options.ipopt.print_level = 12`;
 %         options.ipopt.tol         = 1e-7;
 %         options.ipopt.max_iter    = 100;
         

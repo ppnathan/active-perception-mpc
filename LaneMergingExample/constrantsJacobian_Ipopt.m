@@ -2,8 +2,6 @@ function ceq_Jaco = constrantsJacobian_Ipopt(vars, x0, epsilon, deltaT, num_csta
                                      horizon, constraint_horizon)
 
 
-c = [];
-
 x = zeros(num_cstate, horizon, num_q);
 starting_idx = 0;
 for i = 1:num_q
@@ -34,17 +32,17 @@ A = [1, deltaT, 0, 0;
      0, 0,      0, 1];
 B = [0; 0;      0; deltaT];
 
-g{1} = [0; 0;       0; 0];
-g{2} = [0; deltaT;  0; 0];
-g{3} = [0; -deltaT; 0; 0];
+%g{1} = [0; 0;       0; 0];
+%g{2} = [0; deltaT;  0; 0];
+%g{3} = [0; -deltaT; 0; 0];
 
-mReactionDist = 25;
+% mReactionDist = 25;
 
-num_ceq = num_q-1 + horizon * num_q * num_cstate;
+% num_ceq = num_q-1 + horizon * num_q * num_cstate;
 count_ceq = 1;
 % ceq_Jaco = zeros(num_ceq, num_cstate * horizon * num_q + num_q * horizon);
 
-u_eq_con_grad = zeros(num_q-1, num_cstate)
+u_eq_con_grad = zeros(num_q-1, num_cstate * horizon * num_q + num_q*horizon);
 for i = 2 : num_q
 %     u(1, 1) - u(1, i);
     u_eq_con_grad(count_ceq, :) = [ zeros(1, num_cstate * horizon * num_q), ...
@@ -54,11 +52,11 @@ for i = 2 : num_q
     count_ceq = count_ceq + 1;
 end
 
-A_blk = num2cell(repeat(A, 1, 1, horizon - 1), [1,2]);
+A_blk = num2cell(repmat(A, 1, 1, horizon - 1), [1,2]);
 x_gradient_block = sparse( eye(num_cstate * horizon) + ...
                            [ zeros(num_cstate, num_cstate * horizon);
                            [ -blkdiag(A_blk{:}), zeros(num_cstate * (horizon-1), num_cstate)]]);
-B_blk = num2cell(repeat(B, 1, 1, horizon), [1, 2]);
+B_blk = num2cell(repmat(B, 1, 1, horizon), [1, 2]);
 u_gradient_block =  sparse(blkdiag(B_blk{:}));
 x_grad_zeros_blk = sparse(num_cstate * horizon, num_cstate * horizon);
 u_grad_zeros_blk = sparse(num_cstate * horizon, horizon);
