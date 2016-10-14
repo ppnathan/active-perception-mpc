@@ -6,5 +6,8 @@
 # Temp files
 *.m~
 
+# HSL files
+*.6
+
 # Mac files
 *.DS_Store

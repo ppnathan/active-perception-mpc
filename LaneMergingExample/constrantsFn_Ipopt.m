@@ -1,6 +1,5 @@
 function ceq = constrantsFn_Ipopt(vars, x0, epsilon, deltaT, num_cstate, num_q, ...
                                      horizon, constraint_horizon)
-c = [];
 
 x = zeros(num_cstate, horizon, num_q);
 starting_idx = 0;
